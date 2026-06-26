@@ -248,4 +248,86 @@ function formatNumber(n) {
 }
 function updateRate() {
   const sel = document.getElementById('countrySelect');
-  const opt =
+  const opt = sel.options[sel.selectedIndex];
+  document.getElementById('codePrefix').textContent = opt.dataset.code;
+  document.getElementById('rateInfo').innerHTML = `レート: <b>¥${opt.dataset.rate}</b>/分 · Local Digital Network`;
+}
+
+async function toggleCall() {
+  if (activeCall) { activeCall.disconnect(); return; }
+  if (!device) { showToast('⚙️ CONFIGタブでURLを設定してください', 'error'); return; }
+  if (number.length < 4) { showToast('番号を入力してください'); return; }
+  const sel = document.getElementById('countrySelect');
+  const code = sel.options[sel.selectedIndex].dataset.code;
+  const fullNumber = code + number;
+  try {
+    await device.connect({ params: { To: fullNumber } });
+    const btn = document.getElementById('callBtn');
+    btn.textContent = '📵'; btn.classList.add('calling');
+    addToRecent(fullNumber, sel.options[sel.selectedIndex].text.split(' ')[0]);
+  } catch(err) { showToast('発信失敗: ' + err.message, 'error'); }
+}
+
+function startCallTimer() {
+  callSeconds = 0;
+  const el = document.getElementById('callTimer'); el.classList.add('visible');
+  callTimer = setInterval(() => {
+    callSeconds++;
+    const m = Math.floor(callSeconds/60).toString().padStart(2,'0');
+    const s = (callSeconds%60).toString().padStart(2,'0');
+    el.textContent = m+':'+s;
+  }, 1000);
+}
+function stopCallTimer() { clearInterval(callTimer); document.getElementById('callTimer').classList.remove('visible'); }
+function toggleMute() {
+  if (!activeCall) return;
+  isMuted = !isMuted; activeCall.mute(isMuted);
+  document.getElementById('muteBtn').textContent = isMuted ? '🔇' : '🔊';
+  showToast(isMuted ? 'ミュートON' : 'ミュートOFF');
+}
+function addToRecent(number, flag) {
+  recentCalls.unshift({ number, flag, time: new Date().toLocaleString('ja-JP') });
+  if (recentCalls.length > 20) recentCalls.pop();
+  localStorage.setItem('gr_recent', JSON.stringify(recentCalls));
+}
+function renderRecents() {
+  const el = document.getElementById('recentsList');
+  if (!recentCalls.length) { el.innerHTML = '<div style="padding:24px 18px;color:var(--muted);font-size:13px;text-align:center;">通話履歴はここに表示されます</div>'; return; }
+  el.innerHTML = recentCalls.slice(0,10).map(r => `
+    <div class="recent-item" onclick="dialRecent('${r.number}')">
+      <div class="ri-flag">${r.flag||'📞'}</div>
+      <div class="ri-info"><div class="ri-number">${r.number}</div><div class="ri-meta">${r.time}</div></div>
+      <div class="ri-cost">📞</div>
+    </div>`).join('');
+}
+function dialRecent(num) {
+  switchQA(document.querySelector('.qa-btn'), 'dial');
+  number = num.replace(/[^0-9]/g,''); updateDisplay();
+}
+function saveConfig() {
+  const url = document.getElementById('cfgBackendUrl').value.trim().replace(/\/$/,'');
+  if (!url) { showToast('URLを入力してください', 'error'); return; }
+  backendUrl = url; localStorage.setItem('gr_backend', url);
+  showToast('保存しました。接続中...', 'success'); initTwilio();
+}
+function setStatus(label, state) {
+  document.getElementById('statusLabel').textContent = label;
+  document.getElementById('statusDot').className = 'status-dot' + (state ? ' '+state : '');
+}
+function switchQA(btn, tab) {
+  document.querySelectorAll('.qa-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['dial','recent','rates','config'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===tab ? 'block' : 'none';
+  });
+  if (tab === 'recent') renderRecents();
+}
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast'+(type?' '+type:''); t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
