@@ -2,332 +2,299 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>GlobalRing</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
-<script src="https://media.twiliocdn.com/sdk/js/client/v1.14/twilio.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>iOS Style UI</title>
+
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #0d0f14; --surface: #151820; --surface2: #1c2030;
-    --border: #252a3a; --accent: #3b5bff; --accent2: #00e5a0;
-    --text: #e8eaf2; --muted: #6b7394; --danger: #ff4f6a; --gold: #f5c842;
-  }
-  body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', 'Noto Sans JP', sans-serif; min-height: 100vh; display: flex; flex-direction: column; max-width: 430px; margin: 0 auto; overflow-x: hidden; }
-  .header { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 12px; }
-  .logo { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
-  .logo-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; margin-right: 6px; transition: background 0.3s; }
-  .status-dot.ready { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
-  .status-dot.calling { background: var(--gold); animation: pulse-dot 1s infinite; }
-  .status-dot.error { background: var(--danger); }
-  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .status-label { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
-  .balance-card { margin: 8px 16px 16px; background: linear-gradient(135deg, #1a1f35 0%, #0f1420 100%); border: 1px solid var(--border); border-radius: 20px; padding: 20px; position: relative; overflow: hidden; }
-  .balance-card::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: var(--accent); opacity: 0.08; border-radius: 50%; }
-  .balance-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; font-family: 'Space Mono', monospace; }
-  .balance-amount { font-size: 36px; font-weight: 700; letter-spacing: -1.5px; color: var(--text); line-height: 1; margin-bottom: 16px; }
-  .balance-amount span { font-size: 18px; font-weight: 400; color: var(--muted); margin-right: 2px; }
-  .btn-charge { background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Space Grotesk', sans-serif; transition: all 0.2s; }
-  .quick-actions { display: flex; gap: 8px; padding: 0 16px 20px; }
-  .qa-btn { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 8px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s; }
-  .qa-btn.active { background: var(--accent); border-color: var(--accent); }
-  .qa-icon { font-size: 20px; line-height: 1; }
-  .qa-label { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 0.5px; }
-  .qa-btn.active .qa-label { color: rgba(255,255,255,0.8); }
-  .section { margin: 0 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; margin-bottom: 16px; }
-  .section-header { padding: 16px 18px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-  .section-title { font-size: 10px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--muted); font-family: 'Space Mono', monospace; }
-  .country-field { padding: 14px 18px; border-bottom: 1px solid var(--border); }
-  .field-label { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); font-family: 'Space Mono', monospace; margin-bottom: 8px; }
-  .country-select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; color: var(--text); font-size: 14px; font-family: 'Space Grotesk', 'Noto Sans JP', sans-serif; font-weight: 500; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7394' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
-  .country-select:focus { outline: none; border-color: var(--accent); }
-  .number-display { background: #080c16; margin: 14px 18px; border-radius: 14px; padding: 18px; border: 1px solid #1a2040; position: relative; overflow: hidden; }
-  .number-display::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent2), transparent); opacity: 0.4; }
-  .nd-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-  .nd-tag { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 1.5px; color: var(--accent2); text-transform: uppercase; }
-  .nd-balance { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--gold); }
-  .nd-number { font-family: 'Space Mono', monospace; font-size: 32px; font-weight: 700; color: var(--accent2); letter-spacing: 2px; line-height: 1.1; min-height: 40px; word-break: break-all; }
-  .nd-prefix { color: var(--muted); font-size: 18px; }
-  .nd-cursor { display: inline-block; width: 2px; height: 28px; background: var(--accent2); vertical-align: middle; margin-left: 2px; animation: blink 1s infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-  .nd-rate { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 8px; }
-  .nd-rate b { color: var(--text); }
-  .call-timer { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--gold); text-align: center; padding: 8px 0 0; display: none; }
-  .call-timer.visible { display: block; }
-  .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border-top: 1px solid var(--border); }
-  .key { background: var(--surface); padding: 18px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: background 0.1s; gap: 2px; -webkit-tap-highlight-color: transparent; }
-  .key:active { background: var(--surface2); }
-  .key-num { font-size: 22px; font-weight: 600; font-family: 'Space Grotesk', sans-serif; line-height: 1; }
-  .key-alpha { font-size: 9px; letter-spacing: 1.5px; color: var(--muted); font-family: 'Space Mono', monospace; min-height: 12px; }
-  .key.special .key-num { font-size: 20px; color: var(--muted); }
-  .bottom-actions { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 12px; padding: 16px 18px 20px; background: var(--surface); border-top: 1px solid var(--border); }
-  .btn-action { background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 12px; border-radius: 50%; font-size: 22px; transition: background 0.15s; -webkit-tap-highlight-color: transparent; }
-  .btn-call { background: #1a6e3a; border-radius: 50%; width: 64px; height: 64px; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 26px; cursor: pointer; border: none; box-shadow: 0 0 24px rgba(0,200,80,0.25); transition: all 0.2s; -webkit-tap-highlight-color: transparent; }
-  .btn-call.calling { background: var(--danger); box-shadow: 0 0 24px rgba(255,79,106,0.4); animation: pulse-ring 1.2s infinite; }
-  @keyframes pulse-ring { 0%{box-shadow:0 0 0 0 rgba(255,79,106,0.4)} 70%{box-shadow:0 0 0 16px rgba(255,79,106,0)} 100%{box-shadow:0 0 0 0 rgba(255,79,106,0)} }
-  .recents { padding: 0; }
-  .recent-item { display: flex; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); gap: 14px; cursor: pointer; transition: background 0.15s; }
-  .recent-item:last-child { border-bottom: none; }
-  .recent-item:active { background: var(--surface2); }
-  .ri-flag { font-size: 22px; flex-shrink: 0; }
-  .ri-info { flex: 1; }
-  .ri-number { font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; color: var(--text); }
-  .ri-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .ri-cost { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--gold); text-align: right; }
-  .rates-list { padding: 0; }
-  .rate-item { display: flex; align-items: center; padding: 13px 18px; border-bottom: 1px solid var(--border); gap: 12px; }
-  .rate-item:last-child { border-bottom: none; }
-  .rate-flag { font-size: 22px; }
-  .rate-country { flex: 1; font-size: 14px; font-weight: 500; }
-  .rate-country small { display: block; font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
-  .rate-price { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--accent2); font-weight: 700; }
-  .config-field { padding: 14px 18px; border-bottom: 1px solid var(--border); }
-  .config-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; color: var(--text); font-size: 13px; font-family: 'Space Mono', monospace; margin-top: 8px; }
-  .config-input:focus { outline: none; border-color: var(--accent); }
-  .btn-save { margin: 16px 18px; width: calc(100% - 36px); background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Space Grotesk', sans-serif; }
-  .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 10px 18px; font-size: 13px; color: var(--text); opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 100; max-width: 90vw; text-align: center; }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .toast.success { border-color: var(--accent2); color: var(--accent2); }
-  .toast.error { border-color: var(--danger); color: var(--danger); }
+/* =========================
+   RESET
+========================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial;
+}
+
+body {
+  background: #0b0c10;
+  color: white;
+  overflow-x: hidden;
+}
+
+/* =========================
+   BACKGROUND
+========================= */
+.bg {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top, #1a1f2e, #050608);
+  z-index: -2;
+}
+
+/* blur blobs */
+.blob {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+}
+
+.blob1 { background: #4f8cff; top: 10%; left: 20%; }
+.blob2 { background: #ff4fd8; bottom: 10%; right: 10%; }
+
+/* =========================
+   STATUS BAR
+========================= */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 18px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+/* =========================
+   HOME GRID
+========================= */
+.home {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  padding: 20px;
+  margin-top: 10px;
+}
+
+/* app icon */
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  transition: 0.2s;
+}
+
+.icon:active {
+  transform: scale(0.92);
+}
+
+.label {
+  margin-top: 6px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+/* =========================
+   DOCK
+========================= */
+.dock {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+  padding: 12px 18px;
+  border-radius: 25px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(25px);
+}
+
+/* =========================
+   APP VIEW
+========================= */
+.app-view {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,10,15,0.95);
+  backdrop-filter: blur(30px);
+  transform: translateY(100%);
+  transition: 0.35s ease;
+  padding: 20px;
+}
+
+.app-view.active {
+  transform: translateY(0);
+}
+
+.close-btn {
+  padding: 10px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+/* =========================
+   CHAT UI SAMPLE
+========================= */
+.chat {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 70vh;
+  overflow-y: auto;
+}
+
+.msg {
+  padding: 10px 14px;
+  border-radius: 14px;
+  max-width: 70%;
+  font-size: 14px;
+}
+
+.me {
+  background: #4f8cff;
+  align-self: flex-end;
+}
+
+.bot {
+  background: rgba(255,255,255,0.12);
+}
+
+/* input */
+.input-bar {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+button {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background: #4f8cff;
+  color: white;
+  cursor: pointer;
+}
 </style>
 </head>
+
 <body>
-<div class="header">
-  <div class="logo"><div class="logo-icon">🌐</div>GlobalRing</div>
-  <div style="display:flex;align-items:center;gap:6px;">
-    <span class="status-dot" id="statusDot"></span>
-    <span class="status-label" id="statusLabel">初期化中...</span>
+
+<div class="bg">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+</div>
+
+<div class="status-bar">
+  <div>8:42</div>
+  <div>5G 🔋</div>
+</div>
+
+<div class="home">
+  <div class="app" onclick="openApp('Chat')">
+    <div class="icon">💬</div>
+    <div class="label">Chat</div>
+  </div>
+
+  <div class="app" onclick="openApp('Notes')">
+    <div class="icon">📝</div>
+    <div class="label">Notes</div>
+  </div>
+
+  <div class="app" onclick="openApp('Music')">
+    <div class="icon">🎵</div>
+    <div class="label">Music</div>
+  </div>
+
+  <div class="app" onclick="openApp('Settings')">
+    <div class="icon">⚙️</div>
+    <div class="label">Settings</div>
   </div>
 </div>
-<div class="balance-card">
-  <div class="balance-label">CREDIT BALANCE / 残高</div>
-  <div class="balance-amount"><span>¥</span><span id="balanceNum">--</span></div>
-  <button class="btn-charge" onclick="showToast('Twilioダッシュボードでチャージしてください')">＋ チャージ</button>
+
+<div class="dock">
+  <div class="icon">📞</div>
+  <div class="icon">🌐</div>
+  <div class="icon">📷</div>
+  <div class="icon">💬</div>
 </div>
-<div class="quick-actions">
-  <div class="qa-btn active" onclick="switchQA(this,'dial')"><div class="qa-icon">📞</div><div class="qa-label">DIAL</div></div>
-  <div class="qa-btn" onclick="switchQA(this,'recent')"><div class="qa-icon">🕐</div><div class="qa-label">RECENT</div></div>
-  <div class="qa-btn" onclick="switchQA(this,'rates')"><div class="qa-icon">🧮</div><div class="qa-label">RATES</div></div>
-  <div class="qa-btn" onclick="switchQA(this,'config')"><div class="qa-icon">⚙️</div><div class="qa-label">CONFIG</div></div>
-</div>
-<div id="tab-dial">
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">INTERNATIONAL DIALER / ダイヤラー</span>
-      <span id="muteBtn" onclick="toggleMute()" style="cursor:pointer;font-size:18px;">🔊</span>
-    </div>
-    <div class="country-field">
-      <div class="field-label">DESTINATION COUNTRY / 発信先</div>
-      <select class="country-select" id="countrySelect" onchange="updateRate()">
-        <option value="jp" data-rate="15" data-code="+81">🇯🇵 Japan（日本）(+81) — ¥15/分</option>
-        <option value="br" data-rate="12" data-code="+55">🇧🇷 Brazil（ブラジル）(+55) — ¥12/分</option>
-        <option value="us" data-rate="8" data-code="+1">🇺🇸 USA（米国）(+1) — ¥8/分</option>
-        <option value="cn" data-rate="10" data-code="+86">🇨🇳 China（中国）(+86) — ¥10/分</option>
-        <option value="kr" data-rate="12" data-code="+82">🇰🇷 Korea（韓国）(+82) — ¥12/分</option>
-        <option value="ph" data-rate="18" data-code="+63">🇵🇭 Philippines(+63) — ¥18/分</option>
-        <option value="in" data-rate="9" data-code="+91">🇮🇳 India（インド）(+91) — ¥9/分</option>
-        <option value="gb" data-rate="10" data-code="+44">🇬🇧 UK（英国）(+44) — ¥10/分</option>
-      </select>
-    </div>
-    <div class="number-display">
-      <div class="nd-meta">
-        <span class="nd-tag">SECURE DIGITAL TELEPHONY</span>
-        <span class="nd-balance">JPY ¥<span id="ndBalance">--</span></span>
-      </div>
-      <div class="nd-number">
-        <span class="nd-prefix" id="codePrefix">+81</span>
-        <span id="displayNumber"></span><span class="nd-cursor"></span>
-      </div>
-      <div class="nd-rate" id="rateInfo">レート: <b>¥15</b>/分 · Local Digital Network</div>
-    </div>
-    <div class="call-timer" id="callTimer">00:00</div>
-    <div class="keypad">
-      <div class="key" onclick="pressKey('1')"><div class="key-num">1</div><div class="key-alpha"></div></div>
-      <div class="key" onclick="pressKey('2')"><div class="key-num">2</div><div class="key-alpha">ABC</div></div>
-      <div class="key" onclick="pressKey('3')"><div class="key-num">3</div><div class="key-alpha">DEF</div></div>
-      <div class="key" onclick="pressKey('4')"><div class="key-num">4</div><div class="key-alpha">GHI</div></div>
-      <div class="key" onclick="pressKey('5')"><div class="key-num">5</div><div class="key-alpha">JKL</div></div>
-      <div class="key" onclick="pressKey('6')"><div class="key-num">6</div><div class="key-alpha">MNO</div></div>
-      <div class="key" onclick="pressKey('7')"><div class="key-num">7</div><div class="key-alpha">PQRS</div></div>
-      <div class="key" onclick="pressKey('8')"><div class="key-num">8</div><div class="key-alpha">TUV</div></div>
-      <div class="key" onclick="pressKey('9')"><div class="key-num">9</div><div class="key-alpha">WXYZ</div></div>
-      <div class="key special" onclick="pressKey('*')"><div class="key-num">＊</div><div class="key-alpha"></div></div>
-      <div class="key" onclick="pressKey('0')"><div class="key-num">0</div><div class="key-alpha">＋</div></div>
-      <div class="key special" onclick="pressKey('#')"><div class="key-num">#</div><div class="key-alpha"></div></div>
-    </div>
-    <div class="bottom-actions">
-      <button class="btn-action" onclick="clearNumber()">🗑️</button>
-      <button class="btn-call" id="callBtn" onclick="toggleCall()">📞</button>
-      <button class="btn-action" onclick="deleteKey()">⌫</button>
-    </div>
+
+<!-- APP VIEW -->
+<div id="appView" class="app-view">
+
+  <div class="close-btn" onclick="closeApp()">← Close</div>
+
+  <h2 id="appTitle" style="margin-top:15px;"></h2>
+
+  <div id="chatUI" class="chat">
+    <div class="msg bot">こんにちは。アプリが開きました。</div>
   </div>
-  </div><div id="tab-recent" style="display:none;">
-  <div class="section">
-    <div class="section-header"><span class="section-title">RECENT CALLS / 通話履歴</span></div>
-    <div class="recents" id="recentsList">
-      <div style="padding:24px 18px;color:var(--muted);font-size:13px;text-align:center;">通話履歴はここに表示されます</div>
-    </div>
+
+  <div class="input-bar">
+    <input id="input" placeholder="メッセージ..." />
+    <button onclick="sendMsg()">送信</button>
   </div>
+
 </div>
-<div id="tab-rates" style="display:none;">
-  <div class="section">
-    <div class="section-header"><span class="section-title">CALL RATES / 通話料金</span></div>
-    <div class="rates-list">
-      <div class="rate-item"><span class="rate-flag">🇯🇵</span><div class="rate-country">日本<small>+81 · Japan</small></div><span class="rate-price">¥15/分</span></div>
-      <div class="rate-item"><span class="rate-flag">🇧🇷</span><div class="rate-country">ブラジル<small>+55 · Brazil</small></div><span class="rate-price">¥12/分</span></div>
-      <div class="rate-item"><span class="rate-flag">🇺🇸</span><div class="rate-country">アメリカ<small>+1 · USA</small></div><span class="rate-price">¥8/分</span></div>
-      <div class="rate-item"><span class="rate-flag">🇨🇳</span><div class="rate-country">中国<small>+86 · China</small></div><span class="rate-price">¥10/分</span></div>
-      <div class="rate-item"><span class="rate-flag">🇰🇷</span><div class="rate-country">韓国<small>+82 · Korea</small></div><span class="rate-price">¥12/分</span></div>
-      <div class="rate-item"><span class="rate-flag">🇵🇭</span><div class="rate-country">フィリピン<small>+63 · Philippines</small></div><span class="rate-price">¥18/分</span></div>
-      <div class="rate-item"><span class="rate-flag">🇮🇳</span><div class="rate-country">インド<small>+91 · India</small></div><span class="rate-price">¥9/分</span></div>
-      <div class="rate-item"><span class="rate-flag">🇬🇧</span><div class="rate-country">イギリス<small>+44 · UK</small></div><span class="rate-price">¥10/分</span></div>
-    </div>
-  </div>
-</div>
-<div id="tab-config" style="display:none;">
-  <div class="section">
-    <div class="section-header"><span class="section-title">CONFIGURATION / 設定</span></div>
-    <div class="config-field">
-      <div class="field-label">VERCEL BACKEND URL</div>
-      <input class="config-input" id="cfgBackendUrl" placeholder="https://your-app.vercel.app" type="url">
-    </div>
-    <div style="padding:14px 18px;color:var(--muted);font-size:12px;line-height:1.6;border-bottom:1px solid var(--border);">
-      ℹ️ Account SID / Auth Token はVercelの環境変数に設定してください。
-    </div>
-    <button class="btn-save" onclick="saveConfig()">💾 設定を保存して接続</button>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
+
 <script>
-let number = '', device = null, activeCall = null, isMuted = false;
-let callTimer = null, callSeconds = 0;
-let backendUrl = localStorage.getItem('gr_backend') || '';
-let recentCalls = JSON.parse(localStorage.getItem('gr_recent') || '[]');
+let currentApp = "";
 
-window.addEventListener('load', () => {
-  const saved = localStorage.getItem('gr_backend');
-  if (saved) { document.getElementById('cfgBackendUrl').value = saved; backendUrl = saved; initTwilio(); }
-  else { setStatus('未設定', 'error'); showToast('⚙️ CONFIGタブでURLを設定してください', 'error'); }
-  updateRate();
-});
-
-async function initTwilio() {
-  if (!backendUrl) return;
-  setStatus('接続中...', '');
-  try {
-    const res = await fetch(`${backendUrl}/api/token`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    device = new Twilio.Device(data.token, { codecPreferences: ['opus','pcmu'], enableRingingState: true });
-    device.on('ready', () => { setStatus('接続済み', 'ready'); showToast('✅ Twilio接続完了！', 'success'); });
-    device.on('error', (err) => { setStatus('エラー', 'error'); showToast('❌ ' + err.message, 'error'); });
-    device.on('connect', (conn) => { activeCall = conn; setStatus('通話中', 'calling'); startCallTimer(); });
-    device.on('disconnect', () => {
-      activeCall = null; stopCallTimer(); setStatus('接続済み', 'ready');
-      const btn = document.getElementById('callBtn');
-      btn.textContent = '📞'; btn.classList.remove('calling');
-    });
-  } catch(err) { setStatus('接続失敗', 'error'); showToast('接続失敗: ' + err.message, 'error'); }
+function openApp(name) {
+  currentApp = name;
+  document.getElementById("appTitle").innerText = name;
+  document.getElementById("appView").classList.add("active");
 }
 
-function pressKey(k) {
-  if (number.length >= 15) return;
-  number += k; updateDisplay();
-  if (navigator.vibrate) navigator.vibrate(10);
-  if (activeCall) activeCall.sendDigits(k);
-}
-function deleteKey() { number = number.slice(0,-1); updateDisplay(); }
-function clearNumber() { number = ''; updateDisplay(); }
-function updateDisplay() { document.getElementById('displayNumber').textContent = formatNumber(number); }
-function formatNumber(n) {
-  if (n.length <= 4) return n;
-  if (n.length <= 8) return n.slice(0,4)+' '+n.slice(4);
-  return n.slice(0,4)+' '+n.slice(4,8)+' '+n.slice(8);
-}
-function updateRate() {
-  const sel = document.getElementById('countrySelect');
-  const opt = sel.options[sel.selectedIndex];
-  document.getElementById('codePrefix').textContent = opt.dataset.code;
-  document.getElementById('rateInfo').innerHTML = `レート: <b>¥${opt.dataset.rate}</b>/分 · Local Digital Network`;
+function closeApp() {
+  document.getElementById("appView").classList.remove("active");
 }
 
-async function toggleCall() {
-  if (activeCall) { activeCall.disconnect(); return; }
-  if (!device) { showToast('⚙️ CONFIGタブでURLを設定してください', 'error'); return; }
-  if (number.length < 4) { showToast('番号を入力してください'); return; }
-  const sel = document.getElementById('countrySelect');
-  const code = sel.options[sel.selectedIndex].dataset.code;
-  const fullNumber = code + number;
-  try {
-    await device.connect({ params: { To: fullNumber } });
-    const btn = document.getElementById('callBtn');
-    btn.textContent = '📵'; btn.classList.add('calling');
-    addToRecent(fullNumber, sel.options[sel.selectedIndex].text.split(' ')[0]);
-  } catch(err) { showToast('発信失敗: ' + err.message, 'error'); }
-}
+function sendMsg() {
+  const input = document.getElementById("input");
+  const text = input.value.trim();
+  if (!text) return;
 
-function startCallTimer() {
-  callSeconds = 0;
-  const el = document.getElementById('callTimer'); el.classList.add('visible');
-  callTimer = setInterval(() => {
-    callSeconds++;
-    const m = Math.floor(callSeconds/60).toString().padStart(2,'0');
-    const s = (callSeconds%60).toString().padStart(2,'0');
-    el.textContent = m+':'+s;
-  }, 1000);
-}
-function stopCallTimer() { clearInterval(callTimer); document.getElementById('callTimer').classList.remove('visible'); }
-function toggleMute() {
-  if (!activeCall) return;
-  isMuted = !isMuted; activeCall.mute(isMuted);
-  document.getElementById('muteBtn').textContent = isMuted ? '🔇' : '🔊';
-  showToast(isMuted ? 'ミュートON' : 'ミュートOFF');
-}
-function addToRecent(number, flag) {
-  recentCalls.unshift({ number, flag, time: new Date().toLocaleString('ja-JP') });
-  if (recentCalls.length > 20) recentCalls.pop();
-  localStorage.setItem('gr_recent', JSON.stringify(recentCalls));
-}
-function renderRecents() {
-  const el = document.getElementById('recentsList');
-  if (!recentCalls.length) { el.innerHTML = '<div style="padding:24px 18px;color:var(--muted);font-size:13px;text-align:center;">通話履歴はここに表示されます</div>'; return; }
-  el.innerHTML = recentCalls.slice(0,10).map(r => `
-    <div class="recent-item" onclick="dialRecent('${r.number}')">
-      <div class="ri-flag">${r.flag||'📞'}</div>
-      <div class="ri-info"><div class="ri-number">${r.number}</div><div class="ri-meta">${r.time}</div></div>
-      <div class="ri-cost">📞</div>
-    </div>`).join('');
-}
-function dialRecent(num) {
-  switchQA(document.querySelector('.qa-btn'), 'dial');
-  number = num.replace(/[^0-9]/g,''); updateDisplay();
-}
-function saveConfig() {
-  const url = document.getElementById('cfgBackendUrl').value.trim().replace(/\/$/,'');
-  if (!url) { showToast('URLを入力してください', 'error'); return; }
-  backendUrl = url; localStorage.setItem('gr_backend', url);
-  showToast('保存しました。接続中...', 'success'); initTwilio();
-}
-function setStatus(label, state) {
-  document.getElementById('statusLabel').textContent = label;
-  document.getElementById('statusDot').className = 'status-dot' + (state ? ' '+state : '');
-}
-function switchQA(btn, tab) {
-  document.querySelectorAll('.qa-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  ['dial','recent','rates','config'].forEach(t => {
-    document.getElementById('tab-'+t).style.display = t===tab ? 'block' : 'none';
-  });
-  if (tab === 'recent') renderRecents();
-}
-let toastTimer;
-function showToast(msg, type='') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast'+(type?' '+type:''); t.classList.add('show');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  const chat = document.getElementById("chatUI");
+
+  const me = document.createElement("div");
+  me.className = "msg me";
+  me.innerText = text;
+  chat.appendChild(me);
+
+  const bot = document.createElement("div");
+  bot.className = "msg bot";
+  bot.innerText = "受信: " + text;
+
+  setTimeout(() => {
+    chat.appendChild(bot);
+    chat.scrollTop = chat.scrollHeight;
+  }, 400);
+
+  input.value = "";
 }
 </script>
+
 </body>
 </html>
