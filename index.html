@@ -2,297 +2,145 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>iOS Style UI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Call UI</title>
 
 <style>
-/* =========================
-   RESET
-========================= */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial;
-}
-
 body {
-  background: #0b0c10;
+  margin: 0;
+  background: #000;
   color: white;
-  overflow-x: hidden;
-}
-
-/* =========================
-   BACKGROUND
-========================= */
-.bg {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(circle at top, #1a1f2e, #050608);
-  z-index: -2;
-}
-
-/* blur blobs */
-.blob {
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.4;
-}
-
-.blob1 { background: #4f8cff; top: 10%; left: 20%; }
-.blob2 { background: #ff4fd8; bottom: 10%; right: 10%; }
-
-/* =========================
-   STATUS BAR
-========================= */
-.status-bar {
+  font-family: -apple-system, BlinkMacSystemFont;
   display: flex;
-  justify-content: space-between;
-  padding: 10px 18px;
-  font-size: 12px;
-  opacity: 0.9;
-}
-
-/* =========================
-   HOME GRID
-========================= */
-.home {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
-  padding: 20px;
-  margin-top: 10px;
-}
-
-/* app icon */
-.app {
-  display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+/* 全体中央配置 */
+.container {
+  text-align: center;
+}
+
+/* 数字表示 */
+.number {
+  font-size: 64px;
+  font-weight: 300;
+  letter-spacing: 6px;
+}
+
+/* 小さな補助テキスト */
+.label {
+  margin-top: 20px;
+  font-size: 14px;
+  opacity: 0.5;
+}
+
+/* ボタン */
+.btn {
+  margin-top: 40px;
+  padding: 14px 28px;
+  border-radius: 999px;
+  border: none;
+  font-size: 16px;
   cursor: pointer;
 }
 
-.icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
+.call {
+  background: #1a73e8;
+  color: white;
+}
+
+.clear {
   background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(20px);
+  color: white;
+  margin-right: 10px;
+}
+
+/* キーパッド */
+.keypad {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(3, 70px);
+  gap: 12px;
+  justify-content: center;
+}
+
+.key {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  transition: 0.2s;
+  cursor: pointer;
+  user-select: none;
 }
 
-.icon:active {
+.key:active {
   transform: scale(0.92);
-}
-
-.label {
-  margin-top: 6px;
-  font-size: 11px;
-  opacity: 0.85;
-}
-
-/* =========================
-   DOCK
-========================= */
-.dock {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 15px;
-  padding: 12px 18px;
-  border-radius: 25px;
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(25px);
-}
-
-/* =========================
-   APP VIEW
-========================= */
-.app-view {
-  position: fixed;
-  inset: 0;
-  background: rgba(10,10,15,0.95);
-  backdrop-filter: blur(30px);
-  transform: translateY(100%);
-  transition: 0.35s ease;
-  padding: 20px;
-}
-
-.app-view.active {
-  transform: translateY(0);
-}
-
-.close-btn {
-  padding: 10px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 10px;
-  display: inline-block;
-  cursor: pointer;
-}
-
-/* =========================
-   CHAT UI SAMPLE
-========================= */
-.chat {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  height: 70vh;
-  overflow-y: auto;
-}
-
-.msg {
-  padding: 10px 14px;
-  border-radius: 14px;
-  max-width: 70%;
-  font-size: 14px;
-}
-
-.me {
-  background: #4f8cff;
-  align-self: flex-end;
-}
-
-.bot {
-  background: rgba(255,255,255,0.12);
-}
-
-/* input */
-.input-bar {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  right: 20px;
-  display: flex;
-  gap: 10px;
-}
-
-input {
-  flex: 1;
-  padding: 12px;
-  border-radius: 12px;
-  border: none;
-  outline: none;
-  background: rgba(255,255,255,0.1);
-  color: white;
-}
-
-button {
-  padding: 12px 16px;
-  border: none;
-  border-radius: 12px;
-  background: #4f8cff;
-  color: white;
-  cursor: pointer;
 }
 </style>
 </head>
 
 <body>
 
-<div class="bg">
-  <div class="blob blob1"></div>
-  <div class="blob blob2"></div>
-</div>
+<div class="container">
 
-<div class="status-bar">
-  <div>8:42</div>
-  <div>5G 🔋</div>
-</div>
+  <div id="display" class="number">0</div>
 
-<div class="home">
-  <div class="app" onclick="openApp('Chat')">
-    <div class="icon">💬</div>
-    <div class="label">Chat</div>
+  <div class="label">番号入力</div>
+
+  <div class="keypad">
+    <div class="key" onclick="add('1')">1</div>
+    <div class="key" onclick="add('2')">2</div>
+    <div class="key" onclick="add('3')">3</div>
+    <div class="key" onclick="add('4')">4</div>
+    <div class="key" onclick="add('5')">5</div>
+    <div class="key" onclick="add('6')">6</div>
+    <div class="key" onclick="add('7')">7</div>
+    <div class="key" onclick="add('8')">8</div>
+    <div class="key" onclick="add('9')">9</div>
+    <div class="key" onclick="back()">⌫</div>
+    <div class="key" onclick="add('0')">0</div>
+    <div class="key" onclick="clearAll()">C</div>
   </div>
 
-  <div class="app" onclick="openApp('Notes')">
-    <div class="icon">📝</div>
-    <div class="label">Notes</div>
-  </div>
-
-  <div class="app" onclick="openApp('Music')">
-    <div class="icon">🎵</div>
-    <div class="label">Music</div>
-  </div>
-
-  <div class="app" onclick="openApp('Settings')">
-    <div class="icon">⚙️</div>
-    <div class="label">Settings</div>
-  </div>
-</div>
-
-<div class="dock">
-  <div class="icon">📞</div>
-  <div class="icon">🌐</div>
-  <div class="icon">📷</div>
-  <div class="icon">💬</div>
-</div>
-
-<!-- APP VIEW -->
-<div id="appView" class="app-view">
-
-  <div class="close-btn" onclick="closeApp()">← Close</div>
-
-  <h2 id="appTitle" style="margin-top:15px;"></h2>
-
-  <div id="chatUI" class="chat">
-    <div class="msg bot">こんにちは。アプリが開きました。</div>
-  </div>
-
-  <div class="input-bar">
-    <input id="input" placeholder="メッセージ..." />
-    <button onclick="sendMsg()">送信</button>
+  <div>
+    <button class="btn clear" onclick="clearAll()">クリア</button>
+    <button class="btn call" onclick="call()">CALL</button>
   </div>
 
 </div>
 
 <script>
-let currentApp = "";
+let number = "0";
 
-function openApp(name) {
-  currentApp = name;
-  document.getElementById("appTitle").innerText = name;
-  document.getElementById("appView").classList.add("active");
+function render() {
+  document.getElementById("display").innerText = number;
 }
 
-function closeApp() {
-  document.getElementById("appView").classList.remove("active");
+function add(d) {
+  if (number === "0") number = "";
+  number += d;
+  render();
 }
 
-function sendMsg() {
-  const input = document.getElementById("input");
-  const text = input.value.trim();
-  if (!text) return;
+function back() {
+  number = number.slice(0, -1);
+  if (number === "") number = "0";
+  render();
+}
 
-  const chat = document.getElementById("chatUI");
+function clearAll() {
+  number = "0";
+  render();
+}
 
-  const me = document.createElement("div");
-  me.className = "msg me";
-  me.innerText = text;
-  chat.appendChild(me);
-
-  const bot = document.createElement("div");
-  bot.className = "msg bot";
-  bot.innerText = "受信: " + text;
-
-  setTimeout(() => {
-    chat.appendChild(bot);
-    chat.scrollTop = chat.scrollHeight;
-  }, 400);
-
-  input.value = "";
+function call() {
+  alert("発信: " + number);
 }
 </script>
 
