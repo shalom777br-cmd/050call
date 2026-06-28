@@ -139,8 +139,30 @@ function clearAll() {
   render();
 }
 
-function call() {
-  alert("発信: " + number);
+async function call() {
+  const number = document.getElementById("display").innerText;
+
+  try {
+    const res = await fetch("/api/call", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ number })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert("エラー: " + data.error);
+      return;
+    }
+
+    alert("発信開始: " + data.sid);
+
+  } catch (err) {
+    alert("通信エラー: " + err.message);
+  }
 }
 </script>
 
