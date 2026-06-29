@@ -7,11 +7,11 @@
 - const result = await call("+819012345678");
 - 
 - プロバイダー切り替え:
-- 環境変数 CALL_PROVIDER に "twilio" / “telnyx” / “plivo” を設定するだけ。
+- 環境変数 CALL_PROVIDER に "twilio" / "telnyx" / "plivo" を設定するだけ。
 - 
 - 新プロバイダー追加手順:
 - 1. providers/vonage.js を作り BaseProvider を継承
-- 1. 下の REGISTRY に 1行追加: vonage: () => require(”./vonage”)
+- 1. 下の REGISTRY に 1行追加: vonage: () => require("./vonage")
 - 1. .env に CALL_PROVIDER=vonage を設定
    */
 
@@ -66,7 +66,7 @@ return _activeProvider;
 - console.log(result.callId, result.provider);
   */
   async function call(to, from, opts = {}) {
-  if (!to) throw new Error(“発信先番号 (to) は必須です”);
+  if (!to) throw new Error("発信先番号 (to) は必須です");
   return getProvider().call(to, from, opts);
   }
 
@@ -76,7 +76,7 @@ return _activeProvider;
 - @param {string} callId
   */
   async function hangup(callId) {
-  if (!callId) throw new Error(“callId は必須です”);
+  if (!callId) throw new Error("callId は必須です");
   return getProvider().hangup(callId);
   }
 
@@ -87,7 +87,7 @@ return _activeProvider;
 - @returns {Promise<CallResult>}
   */
   async function getStatus(callId) {
-  if (!callId) throw new Error(“callId は必須です”);
+  if (!callId) throw new Error("callId は必須です");
   return getProvider().getStatus(callId);
   }
 
