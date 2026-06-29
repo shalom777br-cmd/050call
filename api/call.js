@@ -1,24 +1,35 @@
-import twilio from "twilio";
+/**
 
-export default async function handler(req, res) {
-  const client = twilio(
-    process.env.TWILIO_ACCOUNT_SID,
-    process.env.TWILIO_AUTH_TOKEN
-  );
+- api/call.js  —  Vercel Function
+- 
+- POST /api/call
+- Body: { “to”: “+819012345678” }
+- 
+- プロバイダー切り替えは環境変数 CALL_PROVIDER だけで完結。
+- このファイルはプロバイダーを一切知らなくてよい。
+  */
 
-  const { number } = req.body;
+const { call } = require(”../providers”);
 
-  try {
-const call = await client.calls.create({
-  to: number,
-  from: process.env.TWILIO_PHONE_NUMBER,
-  url: "https://demo.twilio.com/docs/voice.xml",
-  timeout: 30
-});
-
-    res.json({ sid: call.sid });
-
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+module.exports = async (req, res) => {
+if (req.method !== “POST”) {
+return res.status(405).json({ error: “POST only” });
 }
+
+const { to, from } = req.body ?? {};
+
+if (!to) {
+return res.status(400).json({ error: ‘発信先 “to” が未指定です’ });
+}
+
+try {
+const result = await call(to, from);
+return res.status(200).json(result);
+} catch (err) {
+console.error(”[050call] call error:”, err);
+return res.status(500).json({
+error: err.message,
+provider: process.env.CALL_PROVIDER ?? “twilio”,
+});
+}
+};
