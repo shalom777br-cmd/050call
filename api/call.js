@@ -9,11 +9,12 @@ export default async function handler(req, res) {
   const { number } = req.body;
 
   try {
-    const call = await client.calls.create({
-      to: number,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      url: "https://demo.twilio.com/docs/voice.xml"
-    });
+const call = await client.calls.create({
+  to: number,
+  from: process.env.TWILIO_PHONE_NUMBER,
+  url: "https://demo.twilio.com/docs/voice.xml",
+  timeout: 30
+});
 
     res.json({ sid: call.sid });
 
