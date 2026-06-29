@@ -148,7 +148,7 @@ async function call() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ number })
+      body: JSON.stringify({ to: number })
     });
 
     const data = await res.json();
